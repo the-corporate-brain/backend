@@ -1,0 +1,40 @@
+service:
+  name: backend
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: beta
+  region: eu-central-1
+  tracing:
+    apiGateway: true
+    lambda: true
+plugins:
+  - serverless-webpack
+package:
+  excludeDevDependencies: true
+  individually: true
+  exclude:
+    - ".idea/**"
+    - "*.json"
+    - "*.html"
+    - "*.log"
+    - "*.iml"
+    - "**/node_modules/aws-sdk/**"
+    - "webpack.config.js"
+    - "*.md"
+    - "LICENSE"
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          method: get
+          path: hello
+          cors: true
+  helloPost:
+    handler: handler.helloPost
+    events:
+      - http:
+          method: post
+          path: hello
+          cors: true
