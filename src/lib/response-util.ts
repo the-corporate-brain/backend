@@ -8,6 +8,9 @@ export function postSuccess(body:any): APIGatewayProxyResult {
   return buildResponse(201, body);
 }
 
+export function notFound(body: any): APIGatewayProxyResult {
+  return buildResponse(404, body);
+}
 export function failure(body:any): APIGatewayProxyResult {
   return buildResponse(500, body);
 }
