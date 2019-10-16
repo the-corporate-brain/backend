@@ -2,21 +2,29 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "Serverless webpack example using Typescript",
-  "main": "handler.js",
+  "main": "dist/handler.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "rimraf dist && tsc && serverless deploy",
+    "offline": "rimraf dist && tsc && serverless offline"
   },
   "dependencies": {
-    "source-map-support": "^0.5.10"
+    "mysql": "^2.17.1",
+    "reflect-metadata": "^0.1.13",
+    "source-map-support": "^0.5.10",
+    "typeorm": "latest",
+    "typeorm-naming-strategies": "latest"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.17",
-    "aws-sdk": "^2.545.0",
     "@types/node": "^10.12.18",
-    "serverless-webpack": "^5.2.0",
+    "aws-sdk": "^2.545.0",
+    "rimraf": "^3.0.0",
+    "serverless-jetpack": "^0.6.0",
+    "serverless-offline": "^5.12.0",
+    "serverless-plugin-reducer": "^3.2.3",
     "ts-loader": "^5.3.3",
-    "typescript": "^3.2.4",
-    "webpack": "^4.29.0"
+    "typescript": "^3.2.4"
   },
   "author": "Lukas Fruntke",
   "license": "MIT"

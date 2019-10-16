@@ -3,17 +3,57 @@ service:
 provider:
   name: aws
   runtime: nodejs10.x
-  stage: beta
+  stage: dev
   region: eu-central-1
   tracing:
     apiGateway: true
     lambda: true
+  vpc:
+    securityGroupIds:
+      - Fn::GetAtt: ServerlessVPC.DefaultSecurityGroup
+    subnetIds:
+      - Ref: ServerlessSubnetA
+      - Ref: ServerlessSubnetB
+      - Ref: ServerlessSubnetC
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - "logs:CreateLogGroup"
+        - "logs:CreateLogStream"
+        - "logs:PutLogEvents"
+        - "ec2:CreateNetworkInterface"
+        - "ec2:DescribeNetworkInterfaces"
+        - "ec2:DeleteNetworkInterface"
+      Resource: "*"
+  environment:
+    DB_HOST: ${self:custom.MySQL.HOST}
+    DB_PORT: ${self:custom.MySQL.PORT}
+    DB_NAME: ${self:custom.MySQL.DB_NAME}
+    DB_USERNAME: ${self:custom.MySQL.USERNAME}
+    DB_PASSWORD: ${self:custom.MySQL.PASSWORD}
+
+  # Define variables here for visibility
+
 plugins:
-  - serverless-webpack
+  - serverless-jetpack
+  - serverless-plugin-reducer
+  - serverless-offline
+custom:
+  MySQL:
+    DB_NAME: aurora${opt:stage, self:provider.stage}
+    USERNAME: master
+    PASSWORD: ${ssm:/aws/reference/secretsmanager/dev/test/aurorapw~true}
+    HOST:
+      Fn::GetAtt: [MySQLRDSCluster, Endpoint.Address]
+    PORT:
+      Fn::GetAtt: [MySQLRDSCluster, Endpoint.Port]
+    VPC_CIDR: 10
 package:
   excludeDevDependencies: true
-  individually: true
+  individually: false
+  include: "dist/**"
   exclude:
+    - "src/**"
     - ".idea/**"
     - "*.json"
     - "*.html"
@@ -25,16 +65,157 @@ package:
     - "LICENSE"
 functions:
   hello:
-    handler: handler.hello
+    handler: dist/handler.hello
     events:
       - http:
           method: get
           path: hello
           cors: true
   helloPost:
-    handler: handler.helloPost
+    handler: dist/handler.helloPost
     events:
       - http:
           method: post
           path: hello
           cors: true
+  getUnitDetails:
+    handler: dist/handlers/index.getUnitDetails
+    events:
+      - http:
+          method: get
+          path: unit/{id}
+          cors: true
+          request:
+            parameters:
+              paths:
+                id: true
+  getTaskDetails:
+    handler: dist/handlers/index.getTaskDetails
+    events:
+      - http:
+          method: get
+          path: task/{id}
+          cors: true
+          request:
+            parameters:
+              paths:
+                id: true
+  getQuestionDetails:
+    handler: dist/handlers/index.getQuestionDetails
+    events:
+      - http:
+          method: get
+          path: question/{id}
+          cors: true
+          request:
+            parameters:
+              paths:
+                id: true
+  submitAnswer:
+    handler: dist/handlers/index.submitAnswer
+    events:
+      - http:
+          method: post
+          path: answer/{id}
+          cors: true
+          request:
+            schema:
+              application/json: ${file(schemas/submit_answer.json)}
+            parameters:
+              paths:
+                id: true
+  seedDatabase:
+    handler: dist/handlers/index.seedDatabase
+    events:
+      - http:
+          method: get
+          path: seed
+          cors: true
+resources:
+  Resources:
+    # VPC config
+    ServerlessVPC:
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: ${self:custom.MySQL.VPC_CIDR}.0.0.0/16
+        EnableDnsSupport: true
+        EnableDnsHostnames: true
+        InstanceTenancy: default
+    ServerlessSubnetA:
+      DependsOn: ServerlessVPC
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId:
+          Ref: ServerlessVPC
+        AvailabilityZone: ${self:provider.region}a
+        CidrBlock: ${self:custom.MySQL.VPC_CIDR}.0.0.0/24
+    ServerlessSubnetB:
+      DependsOn: ServerlessVPC
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId:
+          Ref: ServerlessVPC
+        AvailabilityZone: ${self:provider.region}b
+        CidrBlock: ${self:custom.MySQL.VPC_CIDR}.0.1.0/24
+    ServerlessSubnetC:
+      DependsOn: ServerlessVPC
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId:
+          Ref: ServerlessVPC
+        AvailabilityZone: ${self:provider.region}c
+        CidrBlock: ${self:custom.MySQL.VPC_CIDR}.0.2.0/24
+    # MySQL DB config
+    MySQLSubnetGroup:
+      Type: AWS::RDS::DBSubnetGroup
+      Properties:
+        DBSubnetGroupDescription: "MySQL Subnet Group"
+        SubnetIds:
+          - Ref: ServerlessSubnetA
+          - Ref: ServerlessSubnetB
+          - Ref: ServerlessSubnetC
+    MySQLRDSClusterParameter:
+      Type: AWS::RDS::DBClusterParameterGroup
+      Properties:
+        Description: Parameter group for the Serverless MySQL RDS DB.
+        Family: aurora-mysql5.7
+        Parameters:
+          character_set_database: "utf32"
+    MySQLRDSInstanceParameter:
+      Type: AWS::RDS::DBParameterGroup
+      Properties:
+        Description: Parameter group for the Serverless MySQL RDS DB.
+        Family: aurora-mysql5.7
+        Parameters:
+          sql_mode: IGNORE_SPACE
+          max_connections: 100
+          wait_timeout: 900
+          interactive_timeout: 900
+    MySQLRDSCluster:
+      Type: "AWS::RDS::DBCluster"
+      Properties:
+        MasterUsername: ${self:custom.MySQL.USERNAME}
+        MasterUserPassword: ${self:custom.MySQL.PASSWORD}
+        DBSubnetGroupName:
+          Ref: MySQLSubnetGroup
+        Engine: aurora-mysql
+        EngineVersion: "5.7"
+        DatabaseName: ${self:custom.MySQL.DB_NAME}
+        BackupRetentionPeriod: 3
+        DBClusterParameterGroupName:
+          Ref: MySQLRDSClusterParameter
+        VpcSecurityGroupIds:
+          - Fn::GetAtt: ServerlessVPC.DefaultSecurityGroup
+    MySQLRDSInstance:
+      Type: "AWS::RDS::DBInstance"
+      Properties:
+        DBInstanceClass: db.t2.small
+        DBSubnetGroupName:
+          Ref: MySQLSubnetGroup
+        Engine: aurora-mysql
+        EngineVersion: "5.7"
+        PubliclyAccessible: false
+        DBParameterGroupName:
+          Ref: MySQLRDSInstanceParameter
+        DBClusterIdentifier:
+          Ref: MySQLRDSCluster

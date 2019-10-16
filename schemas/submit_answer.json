@@ -1,0 +1,22 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "The Root Schema",
+  "required": ["answerType"],
+  "properties": {
+    "answerType": {
+      "type": "string",
+      "title": "The type of the answer (either text or id).",
+      "pattern": "\\b(\\w*idAnswer\\w*)\\b|\\b(\\w*textAnswer\\w*)\\b"
+    },
+    "answerId": {
+      "type": "number",
+      "title": "The Number of the Answer, which is handed in"
+    },
+    "answerText": {
+      "type": "string",
+      "title": "The Text of the Answer"
+    }
+  }
+}
