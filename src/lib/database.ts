@@ -16,8 +16,7 @@ export class Database {
     const CONNECTION_NAME = `default`;
 
     let connection: Connection;
-    // Remove comments when ORM runs stable
-    if (/*this.connectionManager.has(CONNECTION_NAME*/false/*)*/) {
+    if (this.connectionManager.has(CONNECTION_NAME)) {
 
       console.log('Using existing connection');
       connection = await this.connectionManager.get(CONNECTION_NAME);
@@ -28,11 +27,11 @@ export class Database {
       }
     } else {
       const connectionOptions: ConnectionOptions = {
-        name: `default`,
+        name: CONNECTION_NAME,
         type: 'mysql',
         port: +process.env.DB_PORT || 3306,
         synchronize: true,
-        logging: true,
+        logging: !!process.env.DB_LOGGING,
         host: process.env.DB_HOST || 'localhost',
         username: process.env.DB_USERNAME || 'tester',
         database: process.env.DB_NAME || 'tester',
@@ -43,13 +42,6 @@ export class Database {
           path.resolve(__dirname + '/../entities/*.js')
         ]
       };
-
-      // Don't need a pwd locally
-      if (process.env.DB_PASSWORD) {
-        Object.assign(connectionOptions, {
-          password: process.env.DB_PASSWORD
-        });
-      }
       console.log('Creating a Connection');
       connection = await createConnection(connectionOptions);
     }

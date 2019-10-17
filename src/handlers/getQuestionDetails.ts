@@ -13,7 +13,7 @@ export async function getQuestionDetails(event: APIGatewayProxyEvent, context: C
   const questionRepository = dbConn.getRepository(Question);
   const { id } = event.pathParameters;
 
-  const question = await questionRepository.findOne(id, { relations: ['correctAnswer', 'answers', 'solvedByUsers', 'task'] });
+  const question = await questionRepository.findOne(id, { relations: ['answers', 'solvedByUsers', 'task'] });
 
   return question ? success(question) : notFound({ message: 'Question not found', id });
 }

@@ -1,3 +1,4 @@
+import { getAllUnits } from './getAllUnits';
 import { getQuestionDetails } from './getQuestionDetails';
 import { getTaskDetails } from './getTaskDetails';
 import { getUnitDetails } from './getUnitDetails';
@@ -9,5 +10,7 @@ export {
   getTaskDetails,
   getUnitDetails,
   submitAnswer,
-  seedDatabase
+  seedDatabase,
+  getAllUnits
+
 };

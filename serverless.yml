@@ -64,19 +64,12 @@ package:
     - "*.md"
     - "LICENSE"
 functions:
-  hello:
-    handler: dist/handler.hello
+  getAllUnits:
+    handler: dist/handlers/index.getAllUnits
     events:
       - http:
           method: get
-          path: hello
-          cors: true
-  helloPost:
-    handler: dist/handler.helloPost
-    events:
-      - http:
-          method: post
-          path: hello
+          path: unit
           cors: true
   getUnitDetails:
     handler: dist/handlers/index.getUnitDetails
