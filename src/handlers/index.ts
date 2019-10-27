@@ -1,3 +1,6 @@
+import 'reflect-metadata';
+import 'source-map-support/register';
+import { authorize } from './authorize';
 import { getAllUnits } from './getAllUnits';
 import { getQuestionDetails } from './getQuestionDetails';
 import { getTaskDetails } from './getTaskDetails';
@@ -11,6 +14,6 @@ export {
   getUnitDetails,
   submitAnswer,
   seedDatabase,
-  getAllUnits
-
+  getAllUnits,
+  authorize
 };

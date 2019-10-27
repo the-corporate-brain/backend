@@ -16,6 +16,14 @@ export function failure(body:any): APIGatewayProxyResult {
 }
 
 function buildResponse(statusCode:number, body:any): APIGatewayProxyResult {
+  console.log({
+    statusCode: statusCode,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true,
+    },
+    body: JSON.stringify(body),
+  });
   return {
     statusCode: statusCode,
     headers: {

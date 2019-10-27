@@ -13,7 +13,7 @@ export async function getTaskDetails(event: APIGatewayProxyEvent, context: Conte
   const taskRepository = dbConn.getRepository(Task);
   const { id } = event.pathParameters;
 
-  const task = await taskRepository.findOne(id, { relations: ['tier', 'questions', 'unit'] });
+  const task = await taskRepository.findOne(id, { relations: ['tier', 'questions', 'questions.answers', 'questions.solvedByUsers', 'unit'] });
 
   return task ? success(task) : notFound({ message: 'Task not found', id });
 }

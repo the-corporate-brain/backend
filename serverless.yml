@@ -3,7 +3,7 @@ service:
 provider:
   name: aws
   runtime: nodejs10.x
-  stage: dev
+  stage: development
   region: eu-central-1
   tracing:
     apiGateway: true
@@ -63,13 +63,21 @@ package:
     - "webpack.config.js"
     - "*.md"
     - "LICENSE"
+    - "schemas/**"
 functions:
+  authorize:
+    handler: dist/handlers/index.authorize
+
+  # GET ROUTES
   getAllUnits:
     handler: dist/handlers/index.getAllUnits
     events:
       - http:
           method: get
           path: unit
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
           cors: true
   getUnitDetails:
     handler: dist/handlers/index.getUnitDetails
@@ -78,6 +86,9 @@ functions:
           method: get
           path: unit/{id}
           cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
           request:
             parameters:
               paths:
@@ -89,6 +100,9 @@ functions:
           method: get
           path: task/{id}
           cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
           request:
             parameters:
               paths:
@@ -100,20 +114,10 @@ functions:
           method: get
           path: question/{id}
           cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
           request:
-            parameters:
-              paths:
-                id: true
-  submitAnswer:
-    handler: dist/handlers/index.submitAnswer
-    events:
-      - http:
-          method: post
-          path: answer/{id}
-          cors: true
-          request:
-            schema:
-              application/json: ${file(schemas/submit_answer.json)}
             parameters:
               paths:
                 id: true
@@ -123,9 +127,124 @@ functions:
       - http:
           method: get
           path: seed
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+
+  # POST ROUTES
+  submitAnswer:
+    handler: dist/handlers/index.submitAnswer
+    events:
+      - http:
+          method: post
+          path: answer
           cors: true
+          authorizer:
+            name: authorize
+            resultTtlInSeconds: 0
+          request:
+            schema:
+              application/json: ${file(schemas/submit_answer.json)}
+  createQuestion:
+    handler: dist/handlers/backend/index.createQuestion
+    events:
+      - http:
+          method: post
+          path: question
+          cors: true
+  createTask:
+    handler: dist/handlers/backend/index.createTask
+    events:
+      - http:
+          method: post
+          path: task
+          cors: true
+  createTeam:
+    handler: dist/handlers/backend/index.createTeam
+    events:
+      - http:
+          method: post
+          path: team
+          cors: true
+  createTier:
+    handler: dist/handlers/backend/index.createTier
+    events:
+      - http:
+          method: post
+          path: tier
+          cors: true
+  createUnit:
+    handler: dist/handlers/backend/index.createUnit
+    events:
+      - http:
+          method: post
+          path: unit
+          cors: true
+  createUser:
+    handler: dist/handlers/backend/index.createUser
+    events:
+      - http:
+          method: post
+          path: user
+          cors: true
+
+  # PUT ROUTES
+#  modifyQuestion:
+#    handler: dist/handlers/backend/index.modifyQuestion
+#    events:
+#      - http:
+#          method: put
+#          path: question
+#          cors: true
+#  modifyTask:
+#    handler: dist/handlers/backend/index.modifyTask
+#    events:
+#      - http:
+#          method: put
+#          path: task
+#          cors: true
+#  modifyTeam:
+#    handler: dist/handlers/backend/index.modifyTeam
+#    events:
+#      - http:
+#          method: put
+#          path: team
+#          cors: true
+#  modifyUnit:
+#    handler: dist/handlers/backend/index.modifyUnit
+#    events:
+#      - http:
+#          method: put
+#          path: unit
+#          cors: true
+#  modifyUser:
+#    handler: dist/handlers/backend/index.modifyUser
+#    events:
+#      - http:
+#          method: put
+#          path: user
+#          cors: true
+
 resources:
   Resources:
+    GatewayResponseDefault4XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+    GatewayResponseDefault5XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_5XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
     # VPC config
     ServerlessVPC:
       Type: AWS::EC2::VPC

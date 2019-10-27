@@ -2,13 +2,15 @@
   "definitions": {},
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
-  "title": "The Root Schema",
-  "required": ["answerType"],
+  "title": "The Answer Submission Schema",
+  "required": [
+    "answerType",
+    "questionId"
+  ],
   "properties": {
     "answerType": {
       "type": "string",
-      "title": "The type of the answer (either text or id).",
-      "pattern": "\\b(\\w*idAnswer\\w*)\\b|\\b(\\w*textAnswer\\w*)\\b"
+      "title": "The type of the answer (either text or id)."
     },
     "answerId": {
       "type": "number",
@@ -17,6 +19,10 @@
     "answerText": {
       "type": "string",
       "title": "The Text of the Answer"
+    },
+    "questionId": {
+      "type": "string",
+      "title": "The ID of the Question"
     }
   }
 }
