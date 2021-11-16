@@ -18,7 +18,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.17",
     "@types/node": "^10.12.18",
-    "aws-sdk": "^2.545.0",
+    "aws-sdk": "^2.814.0",
     "rimraf": "^3.0.0",
     "serverless-jetpack": "^0.6.0",
     "serverless-offline": "^5.12.0",
