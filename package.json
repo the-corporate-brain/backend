@@ -23,7 +23,7 @@
     "serverless-jetpack": "^0.6.0",
     "serverless-offline": "^5.12.0",
     "serverless-plugin-reducer": "^3.2.3",
-    "ts-loader": "^5.3.3",
+    "ts-loader": "^9.4.2",
     "typescript": "^3.2.4"
   },
   "author": "Lukas Fruntke",
